@@ -1,0 +1,40 @@
+version: '3'
+services:
+
+  citel-software-frontend:
+    image: citel-software-frontend
+    ports: 
+      - "80:80"
+    networks:
+      - blood-donors-networks
+
+  api-citel-software:
+    image: api-citel-software
+    ports: 
+      - "8080:8080"
+    networks:
+      - blood-donors-networks
+    depends_on:
+      citel-mysql:
+        condition: service_healthy
+
+  citel-mysql:
+    image: mysql:9
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -pcetil-test123"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      MYSQL_ROOT_PASSWORD: cetil-test123
+      MYSQL_DATABASE: blood-donors-database
+    ports: 
+      - "3306:3306"
+    networks:
+      - blood-donors-networks
+    volumes:
+      - ./sql_scripts:/docker-entrypoint-initdb.d
+
+networks:
+  blood-donors-networks:
+    driver: bridge
